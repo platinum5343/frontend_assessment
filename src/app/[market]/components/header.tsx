@@ -19,46 +19,46 @@ export default function Header() {
   const otherMarkets = MARKETS.filter((m) => m.code !== market);
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link
               href={`/${market}`}
-              className="text-xl font-bold text-gray-900 hover:text-gray-700"
+              className="text-xl font-bold text-slate-900 hover:text-slate-700"
             >
-              Branda V2
+              Branda <span className="text-emerald-600 font-light tracking-wide">V2</span>
             </Link>
-            <nav className="flex items-center space-x-6">
+            <nav className="hidden items-center space-x-6 md:flex">
               <Link
                 href={`/${market}`}
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Services
               </Link>
               <Link
                 href={`/${market}`}
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
               >
                 About
               </Link>
               <Link
                 href={`/${market}`}
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Contact
               </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">
+            <span className="hidden text-sm text-slate-500 sm:inline">
               {config.currency} · {config.symbol}
             </span>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsMarketOpen(!isMarketOpen)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
               >
                 {currentMarket.name}
                 <ChevronDownIcon className="h-4 w-4" />
@@ -66,7 +66,7 @@ export default function Header() {
               {isMarketOpen && (
                 <Fragment>
                   <div
-                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5"
                     onMouseLeave={() => setIsMarketOpen(false)}
                   >
                     <div className="py-1">
@@ -74,7 +74,7 @@ export default function Header() {
                         <Link
                           key={m.code}
                           href={`/${m.code}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                           onClick={() => setIsMarketOpen(false)}
                         >
                           {m.name}

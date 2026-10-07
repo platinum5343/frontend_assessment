@@ -74,92 +74,115 @@ export default function ServiceForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-slate-50/30 border border-slate-100 rounded-2xl p-6 space-y-6">
       <div className="flex items-baseline gap-3">
         {pricing.originalPrice && (
-          <span className="text-lg text-gray-400 line-through">
+          <span className="text-lg text-slate-400 line-through">
             {pricing.symbol}
             {pricing.originalPrice.toLocaleString()}
           </span>
         )}
-        <span className="text-3xl font-bold text-gray-900">
+        <span className="text-3xl font-bold text-slate-900">
           {pricing.symbol}
           {unitPrice.toLocaleString()}
         </span>
         {pricing.featured && (
-          <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
             Featured
           </span>
         )}
       </div>
-      <span className="text-sm text-gray-500">
+      <p className="text-sm text-slate-500">
         Price in {config.currency} ({config.symbol})
-      </span>
+      </p>
 
       <div className="space-y-4">
         {service.options.map((option: ServiceOption) => (
           <div key={option.name}>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               {option.name}
             </label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {option.values.map((value: string) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => handleSelectOption(option.name, value)}
-                  className={`
-                    cursor-pointer rounded-md border px-4 py-2 text-sm font-medium
-                    transition-colors
-                    ${
-                      selectedOptions[option.name] === value
-                        ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }
-                  `}
-                >
-                  {value}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {option.values.map((value: string) => {
+                const isSelected = selectedOptions[option.name] === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleSelectOption(option.name, value)}
+                    aria-pressed={isSelected}
+                    className={`
+                      relative border-2 border-slate-100 rounded-xl p-4 cursor-pointer
+                      text-center text-sm font-medium text-slate-700
+                      hover:border-slate-300 hover:bg-slate-100
+                      focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+                      transition-all
+                      ${
+                        isSelected
+                          ? "border-emerald-600 bg-emerald-50/30 text-emerald-700"
+                          : "bg-white hover:bg-slate-50"
+                      }
+                    `}
+                  >
+                    <span className="flex items-center justify-center">
+                      {value}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">Quantity:</label>
-        <button
-          type="button"
-          onClick={() => handleQuantityChange(-1)}
-          className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          −
-        </button>
-        <span className="text-sm font-medium text-gray-900">{quantity}</span>
-        <button
-          type="button"
-          onClick={() => handleQuantityChange(1)}
-          className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          +
-        </button>
+      <div className="flex items-center gap-4">
+        <label className="text-sm font-medium text-slate-700">Quantity</label>
+        <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white">
+          <button
+            type="button"
+            onClick={() => handleQuantityChange(-1)}
+            className="rounded-l-xl px-4 py-2 text-lg font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            −
+          </button>
+          <span className="px-4 py-2 text-base font-semibold text-slate-900">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            onClick={() => handleQuantityChange(1)}
+            className="rounded-r-xl px-4 py-2 text-lg font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {Object.keys(selectedOptions).length > 0 && (
-        <div className="rounded-md bg-gray-50 p-4">
-          <h4 className="text-sm font-medium text-gray-700">
-            Total: {pricing.symbol}
-            {totalPrice.toLocaleString()}
-          </h4>
+        <div className="rounded-xl bg-white border border-slate-200 p-4">
+          <div className="flex justify-between">
+            <span className="text-sm font-medium text-slate-600">
+              Total ({quantity} × unit)
+            </span>
+            <span className="text-xl font-bold text-slate-900">
+              {pricing.symbol}
+              {totalPrice.toLocaleString()}
+            </span>
+          </div>
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 pt-2">
         <button
           type="button"
           onClick={handleAddToCart}
           disabled={!pricing}
-          className="flex-1 rounded-md bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className={`
+            flex-1 rounded-xl bg-emerald-600 text-white py-4 text-sm font-bold
+            text-center hover:bg-emerald-700 shadow-xl shadow-emerald-600/20
+            transition-all duration-200
+            disabled:cursor-not-allowed disabled:opacity-50
+          `}
         >
           {added ? "Added to Cart ✓" : "Add to Cart"}
         </button>
@@ -167,7 +190,12 @@ export default function ServiceForm({
           type="button"
           onClick={handleOrderNow}
           disabled={!pricing}
-          className="flex-1 rounded-md border border-indigo-600 px-6 py-3 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className={`
+            flex-1 rounded-xl border-2 border-slate-900 text-slate-900 py-4
+            text-sm font-bold text-center hover:bg-slate-900 hover:text-white
+            transition-all duration-200
+            disabled:cursor-not-allowed disabled:opacity-50
+          `}
         >
           Order Now
         </button>

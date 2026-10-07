@@ -24,7 +24,7 @@ export default function Error({
   const config = getMarketConfig(market);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-white text-slate-900">
       <div className="mx-auto max-w-md px-6 text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
           <svg
@@ -42,14 +42,14 @@ export default function Error({
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-slate-900">
           Something went wrong
         </h1>
 
-        <p className="mt-3 text-sm text-gray-600">
+        <p className="mt-3 text-sm text-slate-600">
           We encountered an unexpected error while rendering this page.
           {error.digest && (
-            <span className="block text-xs text-gray-400">
+            <span className="block text-xs text-slate-400">
               Reference: {error.digest}
             </span>
           )}
@@ -58,14 +58,14 @@ export default function Error({
         <div className="mt-6 flex flex-col gap-3">
           <button
             onClick={reset}
-            className="rounded-md bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
           >
             Try again
           </button>
 
           <Link
             href={`/${market}`}
-            className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
           >
             Return to {config.country} home
           </Link>
