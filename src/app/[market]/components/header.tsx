@@ -14,9 +14,16 @@ const MARKETS = [
 export default function Header() {
   const { market, config } = useMarket();
   const [isMarketOpen, setIsMarketOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const currentMarket = MARKETS.find((m) => m.code === market) ?? MARKETS[0];
   const otherMarkets = MARKETS.filter((m) => m.code !== market);
+
+  const navLinks = [
+    { label: "Services", href: `/${market}/services` },
+    { label: "About", href: `/${market}/about` },
+    { label: "Contact", href: `/${market}/contact` },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
@@ -25,35 +32,29 @@ export default function Header() {
           <div className="flex items-center space-x-8">
             <Link
               href={`/${market}`}
-              className="text-xl font-bold text-slate-900 hover:text-slate-700"
+              className="text-xl font-bold text-slate-900 hover:text-emerald-700 transition-colors"
             >
               Branda <span className="text-emerald-600 font-light tracking-wide">V2</span>
             </Link>
+
             <nav className="hidden items-center space-x-6 md:flex">
-              <Link
-                href={`/${market}`}
-                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
-              >
-                Services
-              </Link>
-              <Link
-                href={`/${market}`}
-                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
-              >
-                About
-              </Link>
-              <Link
-                href={`/${market}`}
-                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
-              >
-                Contact
-              </Link>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-slate-700 hover:text-slate-900 hover:text-emerald-700 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
           </div>
+
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-slate-500 sm:inline">
               {config.currency} · {config.symbol}
             </span>
+
             <div className="relative">
               <button
                 type="button"
@@ -85,9 +86,43 @@ export default function Header() {
                 </Fragment>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex md:hidden h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all"
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              <span className="sr-only">Toggle menu</span>
+              {isMobileMenuOpen ? (
+                <XIcon className="h-5 w-5" />
+              ) : (
+                <MenuIcon className="h-5 w-5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col space-y-1 py-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -106,6 +141,44 @@ function ChevronDownIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  );
+}
+
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 6h16M4 12h16M4 18h16"
+      />
+    </svg>
+  );
+}
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M6 18L18 6M6 6l12 12"
       />
     </svg>
   );
