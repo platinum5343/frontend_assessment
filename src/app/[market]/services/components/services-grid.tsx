@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Service, MarketConfig } from "@/core/data";
+import type { Service } from "@/core/data";
 import {
   USE_CASES,
   INDUSTRIES,
@@ -16,7 +16,6 @@ import { CATEGORIES } from "./categories";
 interface ServicesGridProps {
   services: Service[];
   market: string;
-  config: MarketConfig;
   pagination: { page: number; totalPages: number; totalResults: number };
   appliedFilters: Record<string, string>;
 }
@@ -81,7 +80,6 @@ function SearchIcon({ className }: { className?: string }) {
 export default function ServicesGrid({
   services,
   market,
-  config,
   pagination,
   appliedFilters,
 }: ServicesGridProps) {

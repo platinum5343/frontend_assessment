@@ -52,46 +52,55 @@ export default function ServiceGrid({ services, market }: ServiceGridProps) {
         {filteredServices.map((service) => {
           const pricing = service.marketSpecific[market];
           return (
-            <Link
-              key={service.id}
-              href={`/${market}/services/${service.slug}`}
-              className="group block bg-white border border-slate-100 rounded-2xl p-6 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-100/80 transition-all duration-300 ease-out"
-            >
-              <div className="mb-4 flex items-start justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                  {service.name}
-                </h3>
-                {pricing.featured && (
-                  <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                    Featured
-                  </span>
-                )}
-              </div>
-              <p className="mt-2 text-sm text-slate-600 line-clamp-3">
-                {service.description}
-              </p>
-              <div className="mt-4 flex items-baseline gap-2">
-                {pricing.originalPrice && (
-                  <span className="text-sm text-slate-400 line-through">
-                    {pricing.symbol}
-                    {pricing.originalPrice.toLocaleString()}
-                  </span>
-                )}
-                <span className="text-2xl font-bold text-slate-900">
-                  {pricing.symbol}
-                  {pricing.price.toLocaleString()}
-                </span>
-                <span className="text-sm text-slate-500">
-                  ({pricing.currency})
-                </span>
-              </div>
-              <div className="mt-6">
-                <span className="inline-flex items-center text-sm font-semibold text-emerald-600 group-hover:text-emerald-700">
-                  View service
-                  <ChevronRightIcon className="ml-1 h-4 w-4" />
-                </span>
-              </div>
-            </Link>
+              <Link
+                key={service.id}
+                href={`/${market}/services/${service.slug}`}
+                className="group block bg-white border border-slate-100 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-100/80 transition-all duration-300 ease-out"
+              >
+                <div className="relative h-40 w-full overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.name}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {pricing.featured && (
+                    <span className="absolute left-3 top-3 inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                      Featured
+                    </span>
+                  )}
+                </div>
+                <div className="p-6">
+                  <div className="mb-4 flex items-start justify-between">
+                    <h3 className="text-xl font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                      {service.name}
+                    </h3>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-600 line-clamp-3">
+                    {service.description}
+                  </p>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    {pricing.originalPrice && (
+                      <span className="text-sm text-slate-400 line-through">
+                        {pricing.symbol}
+                        {pricing.originalPrice.toLocaleString()}
+                      </span>
+                    )}
+                    <span className="text-2xl font-bold text-slate-900">
+                      {pricing.symbol}
+                      {pricing.price.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-slate-500">
+                      ({pricing.currency})
+                    </span>
+                  </div>
+                  <div className="mt-6">
+                    <span className="inline-flex items-center text-sm font-semibold text-emerald-600 group-hover:text-emerald-700">
+                      View service
+                      <ChevronRightIcon className="ml-1 h-4 w-4" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
           );
         })}
       </div>

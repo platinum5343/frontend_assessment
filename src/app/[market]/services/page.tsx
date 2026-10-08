@@ -63,7 +63,6 @@ export default async function ServicesPage({
         <ServicesGrid
           services={paginatedServices}
           market={market}
-          config={config}
           pagination={pagination}
           appliedFilters={appliedFilters}
         />

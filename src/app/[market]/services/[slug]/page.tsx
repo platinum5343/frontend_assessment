@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SERVICES, getMarketConfig, type MarketConfig } from "@/core/data";
+import Image from "next/image";
+import { SERVICES, getMarketConfig, type MarketConfig, type Service } from "@/core/data";
 import ServiceForm from "../components/service-form";
 
 const SUPPORTED_MARKETS = ["ng", "us", "uk", "ca"];
@@ -53,6 +54,21 @@ export async function generateMetadata({
       canonical: `/${market}/services/${slug}`,
       languages: alternateUrls,
     },
+    openGraph: {
+      title: `${service.name} · ${config.country} · Branda V2`,
+      description: service.description,
+      type: "article",
+      url: `/${market}/services/${slug}`,
+      locale: MARKET_LOCALES[market] ?? "en-NG",
+      images: [
+        {
+          url: service.image,
+          width: 1200,
+          height: 630,
+          alt: service.name,
+        },
+      ],
+    },
   };
 }
 
@@ -70,12 +86,16 @@ export default async function ServicePage({ params }: Props) {
   }
 
   const config: MarketConfig = getMarketConfig(market);
-
   const pricing = service.marketSpecific[market];
+
+  const relatedServices = service.relatedSlugs
+    .map((rs) => SERVICES.find((s) => s.slug === rs))
+    .filter(Boolean) as Service[];
 
   return (
     <article className="py-12 bg-white text-slate-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back link */}
         <div className="mb-8">
           <Link
             href={`/${market}`}
@@ -85,8 +105,23 @@ export default async function ServicePage({ params }: Props) {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
-          <div>
+        <div className="grid md:grid-cols-5 gap-12">
+          {/* Image Gallery */}
+          <div className="md:col-span-2">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+            <Image
+              src={service.image}
+              alt={service.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
+              className="object-cover"
+              referrerPolicy="no-referrer"
+            />
+            </div>
+          </div>
+
+          {/* Service Details */}
+          <div className="md:col-span-3">
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 mb-4">
               {service.name}
             </h1>
@@ -112,8 +147,12 @@ export default async function ServicePage({ params }: Props) {
             </div>
 
             <div className="mt-6">
-              <h2 className="text-sm font-medium text-slate-900">Turnaround</h2>
-              <p className="mt-1 text-sm text-slate-600">{service.turnaround}</p>
+              <h2 className="text-sm font-medium text-slate-900">
+                Turnaround
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {service.turnaround}
+              </p>
             </div>
 
             {pricing?.featured && (
@@ -123,17 +162,72 @@ export default async function ServicePage({ params }: Props) {
               </div>
             )}
           </div>
-
-          <div>
-            {pricing ? (
-              <ServiceForm service={service} market={market} config={config} />
-            ) : (
-              <p className="text-sm text-slate-500">
-                This service is not yet available in {config.country}.
-              </p>
-            )}
-          </div>
         </div>
+
+        {/* Order Form */}
+        <div className="mt-12">
+          {pricing ? (
+            <ServiceForm service={service} market={market} config={config} />
+          ) : (
+            <p className="text-sm text-slate-500">
+              This service is not yet available in {config.country}.
+            </p>
+          )}
+        </div>
+
+        {/* Related Services */}
+        {relatedServices.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
+              Related &amp; Complementary Services
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {relatedServices.map((relatedService) => {
+                const relatedPricing = relatedService.marketSpecific[market];
+                if (!relatedPricing) return null;
+                return (
+                  <Link
+                    key={relatedService.id}
+                    href={`/${market}/services/${relatedService.slug}`}
+                    className="group block bg-white border border-slate-100 rounded-2xl p-6 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-100/80 transition-all duration-300 ease-out"
+                  >
+                    <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
+                      <Image
+                        src={relatedService.image}
+                        alt={relatedService.name}
+                        fill
+                        sizes="(max-width: 768px) 50vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                      {relatedService.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 line-clamp-2">
+                      {relatedService.description}
+                    </p>
+                    <div className="mt-4 flex items-baseline gap-2">
+                      {relatedPricing.originalPrice && (
+                        <span className="text-sm text-slate-400 line-through">
+                          {relatedPricing.symbol}
+                          {relatedPricing.originalPrice.toLocaleString()}
+                        </span>
+                      )}
+                      <span className="text-2xl font-bold text-slate-900">
+                        {relatedPricing.symbol}
+                        {relatedPricing.price.toLocaleString()}
+                      </span>
+                      <span className="text-sm text-slate-500">
+                        ({relatedPricing.currency})
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

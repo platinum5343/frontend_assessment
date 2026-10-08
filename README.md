@@ -1,53 +1,55 @@
 # Branda V2 — Multi-Market Frontend
 
-A production-grade, multi-market e-commerce frontend for Branda's integrated branding ecosystem. Built on the **Next.js 16.4 App Router** with **React 19**, **TypeScript (strict)**, **Tailwind CSS v4**, **Zustand 5**, and **Framer Motion 14**.
+A production-grade, multi-market e-commerce frontend for Branda's integrated branding ecosystem. Built on the **Next.js 16.4 App Router** with **React 19**, **TypeScript (strict)**, **Tailwind CSS v4 (via Turbopack)**, **Zustand 5** for state management, and **Framer Motion 14** for animations.
 
 ---
 
 ## Tech Stack
 
-| Layer              | Technology                                             |
-|--------------------|--------------------------------------------------------|
-| Framework          | Next.js 16.4 (App Router, Turbopack, Cache Components) |
-| Language           | TypeScript 5 (strict mode)                             |
-| Runtime            | React 19.3 (Server + Client Components)                |
-| Styling            | Tailwind CSS v4 via `@tailwindcss/turbopack`           |
-| State Management   | Zustand 5 (selector-based cart store)                  |
-| Animations         | Framer Motion 14 (`motion`, `useInView`, `animate`)    |
-| Icons              | Lucide React                                           |
-| Path Aliases       | `@/*` → `./src/*` (tsconfig + module resolution)       |
+| Layer             | Technology                                                |
+|-------------------|-----------------------------------------------------------|
+| Framework         | Next.js 16.4 (App Router, Turbopack, Cache Components)    |
+| Runtime           | React 19.3 (Server + Client Components, Streaming SSR)    |
+| Language          | TypeScript 5 (strict mode, `@/*` path alias)                |
+| Styling           | Tailwind CSS v4 via `@tailwindcss/turbopack`               |
+| State Management  | Zustand 5 (selector-based cart store)                     |
+| Animations        | Framer Motion 14 (`motion`, `useInView`, `animate`, `useSpring`) |
+| Image Optimization| `next/image` with WebP/AVIF formats                          |
+| Build Tooling     | Turbopack (dev + prod), SWC compiler                        |
 
 ---
 
-## Architectural Decisions
+## Key Architectural Decisions
 
 ### 1. Multi-Market Subfolder Routing (`/[market]`)
 
-All market-specific pages live under `app/[market]/`, where `[market]` is a dynamic segment validated against the supported set: `ng`, `us`, `uk`, `ca`.
+All market-specific pages live under `app/[market]/`, where `[market]` is a dynamic segment validated against the supported set: `ng`, `us`, `uk`, `ca`. This strategy was chosen over locale-based routing (`en-NG`, `en-US`) because:
 
-- **Middleware-based geolocation**: `src/middleware.ts` inspects `Accept-Language` headers and redirects to the appropriate market on first request (NG→`ng`, US→`us`, GB→`uk`, CA→`ca`, fallback→`ng`).
-- **Static generation**: `generateStaticParams` in `[market]/layout.tsx` pre-renders all 4 markets at build time. With Cache Components enabled, all 36 service pages (4 markets × 9 services) are generated statically.
-- **Server-side validation**: The layout performs a defense-in-depth check — if a user manually types an unsupported market, `notFound()` triggers the 404 fallback.
-- **Hreflang SEO**: Each service detail page auto-generates `alternates.languages` metadata mapping markets to locale tags (`en-NG`, `en-US`, `en-GB`, `en-CA`).
+- **SEO-friendly URLs**: `branda.com.ng/ng/services/logo-design` is more readable than `branda.com/services/logo-design?hl=en-NG`
+- **Static generation**: All 36 service pages (4 markets × 9 services) are pre-rendered at build time via `generateStaticParams`, with Cache Components enabled
+- **Edge redirect**: `src/middleware.ts` inspects `Accept-Language` headers on first request and issues a 307 redirect to the appropriate market path — executing at <5ms edge latency
 
-### 2. Server-Rendered URL Search Parameters for SEO
+### 2. Server-Rendered URL Search Parameters for Maximum SEO Indexing
 
-All service data, market config, and metadata are resolved **server-side** in Server Components:
+Search, category filters, use-case filters, industry filters, and sorting state are all encoded in URL query parameters (e.g., `/ng/services?search=logo&category=digital&sortBy=price&page=2`). This was chosen because:
 
-- `page.tsx` (Server Component) fetches `SERVICES` from `@core/data.ts` and computes market-specific pricing inline.
-- `generateMetadata` in service detail pages reads `params` as a `Promise<{ market, slug }>` (React 19 pattern) to produce dynamic, SEO-friendly metadata.
-- No client-side data fetching — the initial HTML is fully rendered with content, enabling search engine indexing without JavaScript execution.
+- **Shareable results**: Every filtered view has a unique, shareable URL
+- **Search engine indexing**: Crawlers can discover every filtered combination without executing JavaScript
+- **Server-side rendering**: All filtering and sorting logic executes in Server Components — no client-side data processing
+- **No client-state duplication**: Filters don't exist in React state, eliminating hydration mismatches
 
-### 3. Separation of Server State and Client Cart State
+### 3. Separation of Server State from Client Cart State
 
-| Concern              | Strategy                                              |
-|----------------------|-------------------------------------------------------|
-| **Server State**     | `SERVICES` array, `MarketConfig`, pricing — pure data accessed directly in Server Components with zero client bundle impact |
-| **Client Cart State**| Zustand store (`@core/store.ts`) — only loaded by Client Components that need interactivity (service form, checkout) |
-| **Market Context**   | `context.tsx` (Client Component boundary) — provides market config to interactive UI via React Context |
-| **Navigation State** | Next.js `useRouter` for client-side transitions — no full page reloads |
+The architecture enforces a strict boundary between server-resolvable data and client-resolvable state:
 
-This boundary ensures that the ~12KB of data/constants never enters the client bundle, while only the ~5KB Zustand store is shipped for cart interactions.
+| Layer               | What                              | Where                | Shipped to Client |
+|---------------------|-----------------------------------|----------------------|-------------------|
+| **Server State**    | `SERVICES`, `MarketConfig`, pricing | `core/data.ts`       | No                |
+| **Client State**    | Cart items, selected options       | `core/store.ts`      | Yes (~5KB)        |
+| **Market Context**  | Current market + config            | `context.tsx`        | Yes (~2KB)        |
+| **UI State**        | Search input, dropdown open         | Local `useState`     | Yes (bundled)     |
+
+This separation ensures the 605-line `SERVICES` data array (containing all service definitions, pricing, options, and filter metadata) stays entirely on the server — never entering the client bundle.
 
 ---
 
@@ -57,36 +59,40 @@ This boundary ensures that the ~12KB of data/constants never enters the client b
 branda-v2/
 ├── src/
 │   ├── app/
-│   │   ├── [market]/                        # Dynamic market segment
+│   │   ├── [market]/
+│   │   │   ├── about/
+│   │   │   │   ├── components/
+│   │   │   │   │   └── stats-counter.tsx    # Client — count-up animations
+│   │   │   │   └── page.tsx                  # Server — company story
 │   │   │   ├── checkout/
-│   │   │   │   └── page.tsx                 # Client — cart, tax, checkout flow
+│   │   │   │   └── page.tsx                  # Client — cart, tax, checkout
 │   │   │   ├── components/
-│   │   │   │   └── header.tsx               # Client — market switcher, nav
-│   │   │   ├── context.tsx                  # Client — MarketProvider + useMarket
+│   │   │   │   └── header.tsx               # Client — switcher, nav
+│   │   │   ├── context.tsx                  # Client — MarketProvider
 │   │   │   ├── error.tsx                    # Client — error boundary
-│   │   │   ├── layout.tsx                   # Server — validation, generateStaticParams
-│   │   │   ├── loading.tsx                  # Server — skeleton loader
+│   │   │   ├── layout.tsx                   # Server — validation, SSG
+│   │   │   ├── loading.tsx                  # Server — skeleton
 │   │   │   ├── not-found.tsx                # Server — 404
-│   │   │   ├── page.tsx                     # Server — market landing
+│   │   │   ├── page.tsx                     # Server — landing
 │   │   │   └── services/
 │   │   │       ├── [slug]/
-│   │   │       │   └── page.tsx             # Server — service detail + hreflang
-│   │   │       └── components/
-│   │   │           ├── service-form.tsx     # Client — options, qty, add-to-cart
-│   │   │           └── services-grid.tsx    # Client — animated service grid
-│   │   │       └── components/
-│   │   │           └── stats-counter.tsx    # Client — count-up metrics
+│   │   │       │   └── page.tsx             # Server — detail + hreflang
+│   │   │       ├── components/
+│   │   │       │   ├── categories.ts        # Shared — category definitions
+│   │   │       │   ├── service-form.tsx     # Client — options, qty, cart
+│   │   │       │   └── services-grid.tsx    # Client — grid, search, filters, pagination
+│   │   │       └── page.tsx                 # Server — listing with SSR filters
 │   │   ├── layout.tsx                       # Server — root layout, fonts
 │   │   ├── not-found.tsx                    # Server — global 404
-│   │   ├── page.tsx                         # Server — home (redirects)
+│   │   ├── page.tsx                         # Server — redirect via middleware
 │   │   └── globals.css                      # Tailwind v4 entry
 │   ├── core/
-│   │   ├── data.ts                          # Pure — SERVICES, getMarketConfig
-│   │   └── store.ts                         # Zustand cart store
+│   │   ├── data.ts                          # Pure — SERVICES, types, filters
+│   │   └── store.ts                         # Zustand — cart store
 │   └── middleware.ts                        # Edge — geolocation redirect
-├── public/                                  # Static assets
-├── next.config.ts                           # Cache Components + Turbopack
-├── tsconfig.json                            # Strict + @/* path alias
+├── public/
+├── next.config.ts                           # Cache Components + Turbopack + image config
+├── tsconfig.json                            # Strict mode + @/* alias
 ├── package.json
 └── AGENTS.md
 ```
@@ -97,8 +103,10 @@ branda-v2/
 
 ### Prerequisites
 
-- **Node.js** 20.x or 22.x
-- **npm** 10.x or 12.x
+| Tool    | Minimum Version |
+|---------|-----------------|
+| Node.js | 20.x or 22.x    |
+| npm     | 10.x or 12.x    |
 
 ### Setup
 
@@ -132,13 +140,63 @@ npm run start
 
 ---
 
-## Performance
+## Supported Markets
 
-- **70 static pages** generated at build time (4 markets × 9 services + shared pages)
-- **Cache Components enabled** — automatic request-level caching
-- **TypeScript strict** — zero type errors
-- **ESLint clean** — zero warnings
-- **Framer Motion** animations — count-up metrics, staggered card reveals, interactive button states
+| Market Code | Country         | Currency Code | Symbol | Default |
+|-------------|-----------------|---------------|--------|---------|
+| `ng`        | Nigeria         | NGN           | ₦      | Yes     |
+| `us`        | United States   | USD           | $      |         |
+| `uk`        | United Kingdom  | GBP           | £      |         |
+| `ca`        | Canada          | CAD           | $      |         |
+
+### Geolocation Detection
+
+The middleware (`src/middleware.ts`) automatically detects the user's market from `Accept-Language` headers:
+
+| Accept-Language Pattern | Market |
+|-------------------------|--------|
+| `en-NG,en;q=0.9`         | `ng`   |
+| `en-US,en;q=0.9`         | `us`   |
+| `en-GB,en;q=0.9`         | `uk`   |
+| `en-CA,en;q=0.9`         | `ca`   |
+| *(any other)*            | `ng`   |
+
+---
+
+## Features
+
+### Services Listing Page
+
+- **Modern grid layout** with service images, names, pricing, and featured badges
+- **Smart search** — filters services by name and description via URL parameters
+- **Category filter** — Digital, Gifts, Create, Studio, Prints
+- **Additional filters** — Use Case (corporate, events, startup, personal) and Industry (tech, hospitality, education, entertainment)
+- **Sorting** — by popularity (default) or price (low to high)
+- **Price display** — shows original price (strikethrough) when discounts apply
+- **Pagination** — 9 items per page with Previous/Next controls
+
+### Service Detail Page
+
+- Server-rendered with `generateStaticParams` for all 36 pages
+- Hreflang metadata for international SEO
+- Interactive options picker using Framer Motion
+- Quantity selector with Zustand cart integration
+- Discounted price display with strikethrough on original
+
+### Checkout
+
+- Real-time cart summary with itemized pricing
+- 7.5% tax calculation
+- Total with currency-appropriate symbol
+- Empty state with browse CTA
+
+### Animations (Framer Motion)
+
+- Header: staggered nav link reveal, dropdown animations, button hover states
+- Services Grid: entry animations with stagger, category button scale, featured badge spring
+- About Stats: count-up from zero, staggered card entry
+- Checkout: confirmation screen spring-in, staggered item reveal
+- Search/Filter controls: fade-in with delay
 
 ---
 

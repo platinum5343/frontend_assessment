@@ -11,6 +11,8 @@ const TAX_RATE = 0.075;
 export default function CheckoutPage() {
   const { market, config } = useMarket();
   const items = useCartStore((state) => state.items);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -51,30 +53,51 @@ export default function CheckoutPage() {
             </svg>
           </motion.div>
 
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">
+          <motion.h1
+            className="text-3xl font-bold text-slate-900 mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             Order Confirmed!
-          </h1>
+          </motion.h1>
 
-          <p className="text-slate-600 mb-6">
+          <motion.p
+            className="text-slate-600 mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
             Thank you for your order. Your total of{" "}
             <span className="font-bold text-emerald-600">
               {config.symbol}
               {total.toLocaleString()}
             </span>{" "}
             has been received.
-          </p>
+          </motion.p>
 
-          <p className="text-sm text-slate-500 mb-8">
-            A confirmation email has been sent to your inbox.
-          </p>
-
-          <Link
-            href={`/${market}`}
-            className="mt-8 inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-            onClick={() => clearCart()}
+          <motion.p
+            className="text-sm text-slate-500 mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
           >
-            Back to {config.country}
-          </Link>
+            A confirmation email has been sent to your inbox.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Link
+              href={`/${market}`}
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+              onClick={() => clearCart()}
+            >
+              Back to {config.country}
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
     );
@@ -132,19 +155,29 @@ export default function CheckoutPage() {
     <div className="py-12 bg-white text-slate-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="mb-8"
+          className="mb-8 flex items-center justify-between"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Checkout
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Shipping to:{" "}
-            <span className="font-medium">{config.country}</span> · Currency:{" "}
-            <span className="font-medium">{config.currency}</span>
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Checkout
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              Shipping to:{" "}
+              <span className="font-medium">{config.country}</span> · Currency:{" "}
+              <span className="font-medium">{config.currency}</span>
+            </p>
+          </div>
+          <motion.button
+            onClick={() => clearCart()}
+            className="text-sm text-slate-500 hover:text-red-600 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Clear All
+          </motion.button>
         </motion.div>
 
         <motion.div
@@ -178,7 +211,7 @@ export default function CheckoutPage() {
                   }}
                 >
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-lg font-semibold text-slate-900">
                         {item.name}
                       </h3>
@@ -188,17 +221,79 @@ export default function CheckoutPage() {
                         </p>
                       )}
                       <p className="mt-1 text-sm text-slate-500">
-                        Quantity: {item.quantity} · Unit:{" "}
+                        Unit Price:{" "}
                         <span className="font-medium">
                           {config.symbol}
                           {item.price.toLocaleString()}
                         </span>
                       </p>
                     </div>
-                    <span className="text-lg font-bold text-slate-900">
-                      {config.symbol}
-                      {itemSubtotal.toLocaleString()}
-                    </span>
+                    <div className="ml-4 flex items-start gap-4">
+                      <span className="text-lg font-bold text-slate-900">
+                        {config.symbol}
+                        {itemSubtotal.toLocaleString()}
+                      </span>
+                      <motion.button
+                        onClick={() =>
+                          removeItem(item.serviceId, item.selectedOptions)
+                        }
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                        aria-label="Remove item"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7L5 7m5 6l6 0m-6 6l6 0"
+                          />
+                        </svg>
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-3">
+                    <span className="text-sm text-slate-600">Quantity:</span>
+                    <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white">
+                      <motion.button
+                        type="button"
+                        onClick={() =>
+                          updateQuantity(
+                            item.serviceId,
+                            item.selectedOptions,
+                            item.quantity - 1
+                          )
+                        }
+                        className="rounded-l-xl px-3 py-1 text-lg font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        −
+                      </motion.button>
+                      <span className="px-3 py-1 text-base font-semibold text-slate-900">
+                        {item.quantity}
+                      </span>
+                      <motion.button
+                        type="button"
+                        onClick={() =>
+                          updateQuantity(
+                            item.serviceId,
+                            item.selectedOptions,
+                            item.quantity + 1
+                          )
+                        }
+                        className="rounded-r-xl px-3 py-1 text-lg font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        +
+                      </motion.button>
+                    </div>
                   </div>
                 </motion.div>
               );
