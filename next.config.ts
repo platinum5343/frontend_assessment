@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "picsum.photos",
+      },
+      {
+        protocol: "https",
         hostname: "**.branda.com.ng",
         pathname: "/wp-content/uploads/**",
       },
