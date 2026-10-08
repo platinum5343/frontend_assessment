@@ -1,5 +1,9 @@
-import { SERVICES, getMarketConfig } from "@/core/data";
 import ServicesGrid from "./components/services-grid";
+import {
+  SERVICES,
+  getMarketConfig,
+  filterAndSortServices,
+} from "@/core/data";
 
 const SUPPORTED_MARKETS = ["ng", "us", "uk", "ca"];
 
@@ -22,12 +26,24 @@ export async function generateMetadata({
 
 export default async function ServicesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ market: string }>;
+  searchParams: Promise<{
+    category?: string;
+    search?: string;
+    sortBy?: string;
+    useCase?: string;
+    industry?: string;
+    page?: string;
+  }>;
 }) {
   const { market } = await params;
+  const resolvedSearchParams = await searchParams;
   const config = getMarketConfig(market);
-  const marketServices = SERVICES.filter((s) => market in s.marketSpecific);
+
+  const { services: paginatedServices, pagination, appliedFilters } =
+    filterAndSortServices(SERVICES, market, resolvedSearchParams);
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -37,17 +53,19 @@ export default async function ServicesPage({
             Branding Services for {config.country}
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            All prices shown in {config.currency} ({config.symbol}).
-            Discover premium, custom branded solutions crafted for your
-            business.
+            All prices shown in {config.currency} ({config.symbol}). Discover
+            premium, custom branded solutions crafted for your business.
           </p>
         </div>
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <ServicesGrid
-          services={marketServices}
+          services={paginatedServices}
           market={market}
+          config={config}
+          pagination={pagination}
+          appliedFilters={appliedFilters}
         />
       </div>
     </div>

@@ -23,6 +23,7 @@ export interface Service {
   name: string;
   category: "digital" | "gifts" | "create" | "studio" | "prints";
   description: string;
+  image: string;
   included: string[];
   turnaround: string;
   options: ServiceOption[];
@@ -48,6 +49,80 @@ export function getMarketConfig(market: string): MarketConfig {
   return MARKET_CONFIGS[market] ?? MARKET_CONFIGS["ng"];
 }
 
+export const USE_CASES = ["all", "corporate", "events", "startup", "personal"] as const;
+export const INDUSTRIES = ["all", "tech", "hospitality", "education", "entertainment"] as const;
+export const SORT_OPTIONS = ["popularity", "price"] as const;
+export const PAGE_SIZE = 9;
+
+export function filterAndSortServices(
+  services: Service[],
+  market: string,
+  params: {
+    category?: string;
+    search?: string;
+    sortBy?: string;
+    useCase?: string;
+    industry?: string;
+    page?: string;
+  }
+): {
+  services: Service[];
+  pagination: { page: number; totalPages: number; totalResults: number };
+  appliedFilters: Record<string, string>;
+} {
+  const category = params.category ?? "all";
+  const search = params.search ?? "";
+  const sortBy = params.sortBy ?? "popularity";
+  const useCase = params.useCase ?? "all";
+  const industry = params.industry ?? "all";
+  const page = parseInt(params.page ?? "1", 10) || 1;
+
+  let filtered = services.filter((s) => market in s.marketSpecific);
+
+  if (category !== "all") {
+    filtered = filtered.filter((s) => s.category === category);
+  }
+
+  if (useCase !== "all") {
+    filtered = filtered.filter((s) => s.filters.useCase === useCase);
+  }
+
+  if (industry !== "all") {
+    filtered = filtered.filter((s) => s.filters.industry === industry);
+  }
+
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q)
+    );
+  }
+
+  if (sortBy === "price") {
+    filtered.sort(
+      (a, b) =>
+        (a.marketSpecific[market]?.price ?? 0) -
+        (b.marketSpecific[market]?.price ?? 0)
+    );
+  } else {
+    filtered.sort((a, b) => b.filters.popularity - a.filters.popularity);
+  }
+
+  const totalResults = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const paginated = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+  return {
+    services: paginated,
+    pagination: { page: safePage, totalPages, totalResults },
+    appliedFilters: { category, search, sortBy, useCase, industry },
+  };
+}
+
 export const SERVICES: Service[] = [
   {
     id: "svc_001",
@@ -56,6 +131,7 @@ export const SERVICES: Service[] = [
     category: "digital",
     description:
       "A professionally crafted logo that captures your brand identity, values, and target audience. Includes multiple concepts and unlimited revisions.",
+    image: "https://images.unsplash.com/photo-1621329165004-2f0619408757",
     included: [
       "3 custom logo concepts",
       "Unlimited revisions",
@@ -118,6 +194,7 @@ export const SERVICES: Service[] = [
     category: "gifts",
     description:
       "Premium ceramic mugs printed with your custom design or logo. Perfect for corporate gifts, events, and promotional giveaways with vibrant, long-lasting prints.",
+    image: "https://images.unsplash.com/photo-1555646186-8ce5a1b3fe64",
     included: [
       "Custom print on both sides",
       "Premium 11oz ceramic mug",
@@ -179,6 +256,7 @@ export const SERVICES: Service[] = [
     category: "prints",
     description:
       "High-quality custom-printed business cards on premium paper stock. Choose from elegant templates or provide your own design for a memorable first impression.",
+    image: "https://images.unsplash.com/photo-1587133319634-7e4e5b7e8b1a",
     included: [
       "100 premium business cards",
       "Double-sided printing",
@@ -240,6 +318,7 @@ export const SERVICES: Service[] = [
     category: "studio",
     description:
       "Eye-catching custom event backdrops and banners for conferences, trade shows, and celebrations. Professionally printed with high-resolution graphics and sturdy framing.",
+    image: "https://images.unsplash.com/photo-1562145493-72275f5b023d",
     included: [
       "Custom design and printing",
       "8x8ft or 10x10ft size",
@@ -301,6 +380,7 @@ export const SERVICES: Service[] = [
     category: "create",
     description:
       "Engaging social media content templates including Instagram posts, stories, LinkedIn banners, and Facebook covers tailored to your brand aesthetic.",
+    image: "https://images.unsplash.com/photo-1611095973515-7c2c2a0a2b30",
     included: [
       "5 Instagram post templates",
       "10 Instagram story templates",
@@ -363,6 +443,7 @@ export const SERVICES: Service[] = [
     category: "digital",
     description:
       "A comprehensive brand style guide documenting your visual identity, typography, color codes, usage rules, and brand voice to ensure consistency across all touchpoints.",
+    image: "https://images.unsplash.com/photo-1586281380248-8a532d5f0a5f",
     included: [
       "Complete visual identity documentation",
       "Typography and font pairing guide",
@@ -425,6 +506,7 @@ export const SERVICES: Service[] = [
     category: "gifts",
     description:
       "Eco-friendly cotton and jute tote bags custom-printed with your brand design. Sustainable promotional items ideal for corporate gifting and event swag.",
+    image: "https://images.unsplash.com/photo-1593696140826-c58b021acf32",
     included: [
       "Natural cotton or jute material",
       "Custom logo or design printing",
@@ -486,6 +568,7 @@ export const SERVICES: Service[] = [
     category: "prints",
     description:
       "Professionally designed and printed flyers and posters to promote your event, product launch, or announcement. Available in multiple sizes with premium finishes.",
+    image: "https://images.unsplash.com/photo-1587614297650-9c1b09d1c3c3",
     included: [
       "Up to 3 design iterations",
       "High-quality CMYK printing",
@@ -548,6 +631,7 @@ export const SERVICES: Service[] = [
     category: "studio",
     description:
       "Professional roll-up banner stands with custom prints for trade shows, retail spaces, and storefronts. Lightweight, portable, and designed for maximum visual impact.",
+    image: "https://images.unsplash.com/photo-1611095973515-7c2c2a0a2b30",
     included: [
       "Custom high-resolution print",
       "Aluminum tripod base",

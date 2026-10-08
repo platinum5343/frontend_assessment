@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +10,22 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.branda.com.ng",
+        pathname: "/wp-content/uploads/**",
+      },
+    ],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [320, 640, 768, 1024, 1280, 1600],
+    imageSizes: [16, 32, 48, 64, 96, 128],
   },
 };
 
