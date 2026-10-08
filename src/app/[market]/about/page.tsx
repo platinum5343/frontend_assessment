@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import React from "react";
+import StatsCounter from "./components/stats-counter";
 import { getMarketConfig, type MarketConfig } from "@/core/data";
 
 const SUPPORTED_MARKETS = ["ng", "us", "uk", "ca"];
@@ -125,44 +126,30 @@ export default async function AboutPage({
       {/* Real Metrics Grid */}
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="text-center">
-              <div className="text-5xl font-bold text-emerald-600 mb-2">
-                500+
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">
-                Active Corporate Clients
-              </h3>
-              <p className="text-sm text-slate-600">
-                Including Truecaller, GT Bank, Dangote, Swipe Nigeria, and
-                Reliance InfoSystems
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="text-5xl font-bold text-emerald-600 mb-2">
-                5,000+
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">
-                High-Quality Products Delivered
-              </h3>
-              <p className="text-sm text-slate-600">
-                Globally across Nigeria, USA, UK, and Canada
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="text-5xl font-bold text-emerald-600 mb-2">
-                4
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">
-                International Markets
-              </h3>
-              <p className="text-sm text-slate-600">
-                Nigeria, USA, United Kingdom, and Canada
-              </p>
-            </div>
-          </div>
+          <StatsCounter
+            items={[
+              {
+                value: 500,
+                suffix: "+",
+                label: "Active Corporate Clients",
+                description:
+                  "Including Truecaller, GT Bank, Dangote, Swipe Nigeria, and Reliance InfoSystems",
+              },
+              {
+                value: 5000,
+                suffix: "+",
+                label: "High-Quality Products Delivered",
+                description:
+                  "Globally across Nigeria, USA, UK, and Canada",
+              },
+              {
+                value: 4,
+                label: "International Markets",
+                description: "Nigeria, USA, United Kingdom, and Canada",
+              },
+            ]}
+            stagger={0.15}
+          />
         </div>
       </section>
 
