@@ -6,6 +6,7 @@ import {
   useTransform,
   useInView,
   motion,
+  animate,
 } from "framer-motion";
 
 interface StatsItem {
@@ -24,13 +25,13 @@ function CountUp({
   to,
   suffix = "",
   delay = 0,
+  inView,
 }: {
   to: number;
   suffix?: string;
   delay?: number;
+  inView: boolean;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
   const count = useMotionValue(0);
   const display = useTransform(count, (val) => {
     const n = Math.floor(val);
@@ -38,21 +39,16 @@ function CountUp({
   });
 
   useEffect(() => {
-    if (isInView) {
-      count.set(to);
+    if (inView) {
+      animate(count, to, {
+        duration: 1.2,
+        delay: delay,
+        ease: "easeOut",
+      });
     }
-  }, [isInView, count, to]);
+  }, [inView, count, to, delay]);
 
-  return (
-    <motion.span
-      ref={ref}
-      initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : undefined}
-      transition={{ duration: 0.2, delay: delay + 0.3 }}
-    >
-      {display}
-    </motion.span>
-  );
+  return <motion.span>{display}</motion.span>;
 }
 
 function StatCard({
@@ -90,6 +86,7 @@ function StatCard({
           to={item.value}
           suffix={item.suffix}
           delay={index * stagger}
+          inView={isInView}
         />
       </motion.div>
       <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.label}</h3>
